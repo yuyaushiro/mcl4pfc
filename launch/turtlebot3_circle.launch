@@ -20,4 +20,7 @@
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
   <node name="rviz" pkg="rviz" type="rviz" args="$(arg rviz_config)"/> 
+
+  <node name="joy_node" pkg="joy" type="joy_node" output="screen"/>
+  <node name="joy_twist" pkg="mcl4pfc" type="joy_twist.py" output="screen"/>
 </launch>
