@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<sdf version="1.4">
+<model name="circle">
+  <pose>0 0 0 0 0 0</pose>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://circle/model.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://circle/model.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
