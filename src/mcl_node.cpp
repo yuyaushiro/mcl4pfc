@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iterator>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/LaserScan.h>
 #include <mcl4pfc/mcl_node.h>
@@ -17,6 +18,8 @@ MclNode::MclNode(ros::NodeHandle& nh)
                                                     &MclNode::scanCb, this);
   sub_map_ = nh_.subscribe<nav_msgs::OccupancyGrid>("/map", 1,
                                                     &MclNode::mapCb, this);
+  pub_particlecloud_ = nh_.advertise<geometry_msgs::PoseArray>("/particlecloud",
+                                                               10);
 }
 
 MclNode::~MclNode()

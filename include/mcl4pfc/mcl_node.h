@@ -22,6 +22,7 @@ class MclNode
   ros::Subscriber sub_cmd_vel_;
   ros::Subscriber sub_scan_;
   ros::Subscriber sub_map_;
+  ros::Publisher pub_particlecloud_;
   // Vel
   double nu_;
   double omega_;
