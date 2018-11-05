@@ -1,15 +1,14 @@
 #include <ros/ros.h>
 #include <vector>
-#include <algorithm>
-#include <iterator>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseArray.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/LaserScan.h>
 #include <mcl4pfc/mcl_node.h>
+#include <mcl4pfc/mcl.h>
 
 
-MclNode::MclNode(ros::NodeHandle& nh)
+MclNode::MclNode(const ros::NodeHandle& nh)
 : nh_(nh)
 {
   sub_cmd_vel_ = nh_.subscribe<geometry_msgs::Twist>("/cmd_vel", 10,

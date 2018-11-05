@@ -10,8 +10,9 @@
 class MclNode
 {
  public:
-  MclNode(ros::NodeHandle& nh);
+  MclNode(const ros::NodeHandle& nh);
   ~MclNode();
+ private:
   void cmdVelCb(const geometry_msgs::TwistConstPtr& twist);
   void scanCb(const sensor_msgs::LaserScanConstPtr& scan);
   void mapCb(const nav_msgs::OccupancyGridConstPtr& map);
