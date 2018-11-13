@@ -184,7 +184,7 @@ class MCLROS():
                                               latch=True, queue_size=1)
 
         # 自己位置推定
-        self.mcl = MCL(50, goal, initial_pose=[1.0, 0.5, 0.0])
+        self.mcl = MCL(1, goal, initial_pose=[1.0, 0.5, 0.0])
 
         while not rospy.is_shutdown():
             if i > 10:

@@ -1,10 +1,14 @@
 #pragma once
 
 
-struct Particle
+class Particle
 {
-  float x;
-  float y;
-  float theta;
-  float weight;
+ public:
+  Particle();
+  Particle(double (&pose)[3], double weight);
+  ~Particle();
+
+ //private:
+  double pose_[3];
+  double weight_;
 };

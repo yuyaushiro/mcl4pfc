@@ -3,8 +3,12 @@
 #include <ros/ros.h>
 #include <vector>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/Quaternion.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <sensor_msgs/LaserScan.h>
+#include <tf/transform_datatypes.h>
+#include <mcl4pfc/mcl.h>
 
 
 class MclNode
@@ -16,17 +20,20 @@ class MclNode
   void cmdVelCb(const geometry_msgs::TwistConstPtr& twist);
   void scanCb(const sensor_msgs::LaserScanConstPtr& scan);
   void mapCb(const nav_msgs::OccupancyGridConstPtr& map);
+  void pubParticlecloud();
+  void RPYToQuaternion(double roll, double pitch, double yaw,
+                        geometry_msgs::Quaternion& q);
   
  private:
   // ROS
   ros::NodeHandle nh_;
-  ros::Subscriber sub_cmd_vel_;
-  ros::Subscriber sub_scan_;
-  ros::Subscriber sub_map_;
-  ros::Publisher pub_particlecloud_;
+  ros::Subscriber cmd_vel_sub_;
+  ros::Subscriber scan_sub_;
+  ros::Subscriber map_sub_;
+  ros::Publisher particlecloud_pub_;
   // Vel
-  double nu_;
-  double omega_;
+  float nu_;
+  float omega_;
   // Laser scan
   std::vector<float> scan_;
   float range_min_;
@@ -36,4 +43,6 @@ class MclNode
   float resolution_;
   uint32_t width_;
   uint32_t height_;
+  // MCL
+  Mcl mcl_;
 };
