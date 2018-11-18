@@ -7,7 +7,7 @@ from geometry_msgs.msg import Twist
 
 class JoyTwist(object):
     def __init__(self):
-        hz = 5.0
+        hz = 10.0
         rate = rospy.Rate(hz)
         self._max_vel_x = 0.15
         self._max_vel_theta = math.radians(45)

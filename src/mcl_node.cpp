@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <cmath>
 #include <vector>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseArray.h>
@@ -22,19 +23,12 @@ MclNode::MclNode(const ros::NodeHandle& nh) :
                                                     &MclNode::mapCb, this);
   particlecloud_pub_ = nh_.advertise<geometry_msgs::PoseArray>("/particlecloud",
                                                                10);
-  int particle_num = 5;
-  double initial_pose[] = {0, 0, 1.57};
-  double state_transition_sigma = 0.1;
-  double likelihood_field_sigma = 0.1;
+  int particle_num = 1000;
+  double initial_pose[] = {1.0, 0.5, 0.0};
+  double state_transition_sigma = 0.01;
+  double likelihood_field_sigma = 0.05;
   mcl_ = Mcl(particle_num, initial_pose,
              state_transition_sigma, likelihood_field_sigma);
-  while (ros::ok())
-  {
-    MclNode::pubParticlecloud();
-
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
 }
 
 MclNode::~MclNode()
@@ -45,6 +39,10 @@ void MclNode::cmdVelCb(const geometry_msgs::TwistConstPtr& twist)
 {
   nu_ = twist->linear.x;
   omega_ = twist->angular.z;
+  float u[] = {nu_, omega_};
+
+  MclNode::pubParticlecloud();
+  mcl_.updateWithMotion(u, 0.1);
 }
 
 void MclNode::scanCb(const sensor_msgs::LaserScanConstPtr& scan)
