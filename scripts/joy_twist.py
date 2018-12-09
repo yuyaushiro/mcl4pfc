@@ -9,8 +9,8 @@ class JoyTwist(object):
     def __init__(self):
         hz = 10.0
         rate = rospy.Rate(hz)
-        self._max_vel_x = 0.15
-        self._max_vel_theta = math.radians(45)
+        self._max_vel_x = 0.2
+        self._max_vel_theta = math.radians(60)
         self._sub_joy =\
             rospy.Subscriber('/joy', Joy, self.joy_callback, queue_size=1)
         self._pub_cmd_vel =\

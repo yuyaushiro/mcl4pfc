@@ -184,20 +184,20 @@ class MCLROS():
                                               latch=True, queue_size=1)
 
         # 自己位置推定
-        self.mcl = MCL(1, goal, initial_pose=[1.0, 0.5, 0.0])
+        self.mcl = MCL(500, goal, initial_pose=[1.0, 0.5, 0.0])
 
         while not rospy.is_shutdown():
             if i > 10:
                 pose_array = self.create_pose_array(self.mcl.particles)
                 self.pub_pose_array.publish(pose_array)
-                self.mcl.sensor_updata(self.scans, self.grid_map)
+                #self.mcl.sensor_updata(self.scans, self.grid_map)
                 i = 0
             i += 1
             rate.sleep()
 
     def cmd_vel_cb(self, cmd_vel):
         self.u = (cmd_vel.linear.x, cmd_vel.angular.z)
-        self.mcl.motion_update(self.u, 0.2) 
+        self.mcl.motion_update(self.u, 0.1) 
     
     def scan_cb(self, scan):
         ranges = np.array(scan.ranges)

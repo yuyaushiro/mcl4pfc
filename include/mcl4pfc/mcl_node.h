@@ -35,9 +35,12 @@ class MclNode
   float nu_;
   float omega_;
   // Laser scan
-  std::vector<float> scan_;
-  float range_min_;
-  float range_max_;
+  int i_;
+  std::vector<float> ranges_;
+  float angle_min_;
+  float angle_max_;
+  float angle_increment_;
+  std::vector<float> angles_;
   // Grid map
   std::vector<int8_t> map_;
   float resolution_;

@@ -12,7 +12,8 @@
 
 
 MclNode::MclNode(const ros::NodeHandle& nh) :
-  nh_(nh)
+  nh_(nh),
+  i_(0)
 {
   ros::Rate loop_rate(10);
   cmd_vel_sub_ = nh_.subscribe<geometry_msgs::Twist>("/cmd_vel", 10,
@@ -25,10 +26,8 @@ MclNode::MclNode(const ros::NodeHandle& nh) :
                                                                10);
   int particle_num = 1000;
   double initial_pose[] = {1.0, 0.5, 0.0};
-  double state_transition_sigma = 0.01;
-  double likelihood_field_sigma = 0.05;
-  mcl_ = Mcl(particle_num, initial_pose,
-             state_transition_sigma, likelihood_field_sigma);
+  double state_transition_sigma = 0.02;
+  mcl_ = Mcl(particle_num, initial_pose, state_transition_sigma);
 }
 
 MclNode::~MclNode()
@@ -43,21 +42,36 @@ void MclNode::cmdVelCb(const geometry_msgs::TwistConstPtr& twist)
 
   MclNode::pubParticlecloud();
   mcl_.updateWithMotion(u, 0.1);
+  i_++;
 }
 
 void MclNode::scanCb(const sensor_msgs::LaserScanConstPtr& scan)
 {
-  scan_ = scan->ranges;
-  range_min_ = scan->range_min;
-  range_max_ = scan->range_max;
+  if (i_ > 10)
+  {
+    ranges_ = scan->ranges;
+
+    angle_min_ = scan->angle_min;
+    angle_max_ = scan->angle_max;
+    angle_increment_ = scan->angle_increment;
+    angles_.resize(ranges_.size());
+    for (int i = 0; i < angles_.size(); i++)
+    {
+      angles_[i] = i*angle_increment_;
+    }
+
+    mcl_.updateWithObservation(ranges_, angles_);
+    i_ = 0;
+  }
 }
 
 void MclNode::mapCb(const nav_msgs::OccupancyGridConstPtr& map)
 {
-  map_ = map->data;
-  resolution_ = map->info.resolution;
-  width_ = map->info.width;
-  height_ = map->info.height;
+  std::vector<int8_t> map_image = map->data;
+  float resolution = map->info.resolution;
+  uint32_t width = map->info.width;
+  uint32_t height = map->info.height;
+  mcl_.setLikelihoodField(map_image, resolution, width, height, 0.02);
 }
 
 void MclNode::pubParticlecloud()
@@ -65,8 +79,7 @@ void MclNode::pubParticlecloud()
   geometry_msgs::PoseArray pose_array;
   pose_array.header.stamp = ros::Time::now();
   pose_array.header.frame_id = "/map";
-  for (auto itr = mcl_.particles_.begin(); itr != mcl_.particles_.end();
-       ++itr)
+  for (auto itr = mcl_.particles_.begin(); itr != mcl_.particles_.end(); ++itr)
   {
     geometry_msgs::Pose pose;
     pose.position.x = itr->pose_[0];

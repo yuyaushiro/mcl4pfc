@@ -12,19 +12,30 @@ class Mcl
  public:
   Mcl();
   Mcl(int particle_num, double (&initial_pose)[3],
-      double state_transition_sigma, double likelihood_field_sigma);
+      double state_transition_sigma);
   ~Mcl();
+  void setLikelihoodField(const std::vector<int8_t>& map_image,
+                          float resolution,
+                          uint32_t width, uint32_t height,
+                          double likelihood_field_sigma);
   void updateWithMotion(float (&u)[2], double dt);
-  void updateWithObservation();
+  void updateWithObservation(std::vector<float>& ranges,
+                             std::vector<float>& angles);
 
   std::vector<Particle> particles_;
+  std::vector<float> likelihood_field_;
 
  private:
   void transitionState(double (&pose)[3], float (&u)[2], double dt);
+  double calcLikelihood(std::vector<float>& ranges, 
+                        std::vector<float>& angles, double (&pose)[3]);
   void resampling();
-  void calcLikelihood();
 
   int particle_num_;
+  double weight_sum_;
   double state_transition_sigma_;
   double likelihood_field_sigma_;
+  float resolution_;
+  uint32_t width_;
+  uint32_t height_;
 };
