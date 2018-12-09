@@ -15,7 +15,6 @@ MclNode::MclNode(const ros::NodeHandle& nh) :
   nh_(nh),
   i_(0)
 {
-  ros::Rate loop_rate(10);
   cmd_vel_sub_ = nh_.subscribe<geometry_msgs::Twist>("/cmd_vel", 10,
                                                      &MclNode::cmdVelCb, this);
   scan_sub_ = nh_.subscribe<sensor_msgs::LaserScan>("/scan", 1,
@@ -24,10 +23,19 @@ MclNode::MclNode(const ros::NodeHandle& nh) :
                                                     &MclNode::mapCb, this);
   particlecloud_pub_ = nh_.advertise<geometry_msgs::PoseArray>("/particlecloud",
                                                                10);
-  int particle_num = 1000;
-  double initial_pose[] = {1.0, 0.5, 0.0};
+  int particle_num = 10000;
+  double initial_pose[] = {3.0, 2.5, 0.0};
   double state_transition_sigma = 0.02;
-  mcl_ = Mcl(particle_num, initial_pose, state_transition_sigma);
+  double x_range[] = {2.0, 4.0};
+  double y_range[] = {2.0, 4.0};
+  double theta_range[] = {-M_PI, M_PI};
+  //mcl_ = Mcl(particle_num, state_transition_sigma, initial_pose);
+  mcl_ = Mcl(particle_num, state_transition_sigma,
+             x_range, y_range, theta_range);
+
+  double goal_position[] = {3.0, 3.7};
+  double goal_radius = 0.1;
+  mcl_.setGoal(goal_position, goal_radius);
 }
 
 MclNode::~MclNode()
@@ -38,16 +46,19 @@ void MclNode::cmdVelCb(const geometry_msgs::TwistConstPtr& twist)
 {
   nu_ = twist->linear.x;
   omega_ = twist->angular.z;
+  if (nu_ != 0 || omega_ != 0)
+  {
+    i_++;
+  }
   float u[] = {nu_, omega_};
 
   MclNode::pubParticlecloud();
-  mcl_.updateWithMotion(u, 0.1);
-  i_++;
+  mcl_.updateWithMotion(u, 1.0);
 }
 
 void MclNode::scanCb(const sensor_msgs::LaserScanConstPtr& scan)
 {
-  if (i_ > 10)
+  if (i_ > 1)
   {
     ranges_ = scan->ranges;
 
@@ -71,7 +82,7 @@ void MclNode::mapCb(const nav_msgs::OccupancyGridConstPtr& map)
   float resolution = map->info.resolution;
   uint32_t width = map->info.width;
   uint32_t height = map->info.height;
-  mcl_.setLikelihoodField(map_image, resolution, width, height, 0.02);
+  mcl_.setLikelihoodField(map_image, resolution, width, height, 0.05);
 }
 
 void MclNode::pubParticlecloud()

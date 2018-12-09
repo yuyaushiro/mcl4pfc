@@ -24,10 +24,14 @@ Mcl::Mcl() :
   {
     particles_[i] = Particle(initial_pose, 1.0/particle_num_);
   }
+
+  double goal_position[] = {0.0, 0.0};
+  double goal_radius = 0.0;
+  Mcl::setGoal(goal_position, goal_radius);
 }
 
-Mcl::Mcl(int particle_num, double (&initial_pose)[3],
-         double state_transition_sigma) :
+Mcl::Mcl(int particle_num, double state_transition_sigma,
+         double (&initial_pose)[3]) :
   particle_num_(particle_num),
   weight_sum_(0.0),
   state_transition_sigma_(state_transition_sigma),
@@ -42,6 +46,39 @@ Mcl::Mcl(int particle_num, double (&initial_pose)[3],
   {
     particles_[i] = Particle(initial_pose, 1.0/particle_num_);
   }
+  
+  double goal_position[] = {0.0, 0.0};
+  double goal_radius = 0.0;
+  Mcl::setGoal(goal_position, goal_radius);
+}
+
+Mcl::Mcl(int particle_num, double state_transition_sigma,
+         double (&x_range)[2], double (&y_range)[2], double (&theta_range)[2]) :
+  particle_num_(particle_num),
+  weight_sum_(0.0),
+  state_transition_sigma_(state_transition_sigma),
+  likelihood_field_sigma_(0.1),
+  likelihood_field_(1, 0),
+  resolution_(0.01),
+  width_(1),
+  height_(1)
+{
+  std::random_device rnd;
+  std::mt19937 mt(rnd());
+  std::uniform_real_distribution<double> x_dist(x_range[0], x_range[1]);
+  std::uniform_real_distribution<double> y_dist(y_range[0], y_range[1]);
+  std::uniform_real_distribution<double> theta_dist(theta_range[0], theta_range[1]);
+
+  particles_.resize(particle_num_);
+  for (int i = 0; i < particle_num_; i++)
+  {
+    double pose[] = {x_dist(mt), y_dist(mt), theta_dist(mt)};
+    particles_[i] = Particle(pose, 1.0/particle_num_);
+  }
+
+  double goal_position[] = {0.0, 0.0};
+  double goal_radius = 0.0;
+  Mcl::setGoal(goal_position, goal_radius);
 }
 
 Mcl::~Mcl()
@@ -97,6 +134,13 @@ void Mcl::setLikelihoodField(const std::vector<int8_t>& map_image,
                   (sqrt(2 * M_PI) * sigma));
     }
   }
+}
+
+void Mcl::setGoal(double (&position)[2], double radius)
+{
+  goal_position_[0] = position[0];
+  goal_position_[1] = position[1];
+  goal_radius_ = radius;
 }
 
 void Mcl::transitionState(double (&pose)[3], float (&u)[2], double dt)
@@ -158,6 +202,12 @@ void Mcl::updateWithObservation(std::vector<float>& ranges,
 double Mcl::calcLikelihood(std::vector<float>& ranges,
                            std::vector<float>& angles, double (&pose)[3])
 {
+  double dist = std::hypot(goal_position_[0] - pose[0],
+                           goal_position_[1] - pose[1]);
+  if (dist < goal_radius_)
+  {
+    return 1.0e-10;
+  }
   double q = 1;
   double x = pose[0];
   double y = pose[1];
@@ -167,17 +217,6 @@ double Mcl::calcLikelihood(std::vector<float>& ranges,
   double x_idx;
   double y_idx;
   double idx;
-
-  //for (auto k = scans.begin(); k != scans.end(); ++k)
-  //{
-  //  if (!std::isinf(*k))
-  //  {
-  //    x_z = pose[0] + *k * cos(theta + *k);
-  //    y_z = pose[1] + *k * sin(theta + *k);
-  //    std::cout << x_z << ", " << y_z << std::endl;
-  //    //////////////////////////////////////////////
-  //  }
-  //}
 
   for (int k = 0; k < 1; k++)
   {

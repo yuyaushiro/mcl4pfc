@@ -1,5 +1,5 @@
 <launch>
-  <arg name="map_file" default="$(find mcl4pfc)/map/circle.yaml"/>
+  <arg name="map_file" default="$(find mcl4pfc)/map/circle2.yaml"/>
   <arg name="rviz_config" default="$(find mcl4pfc)/config/circle.rviz"/>
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="x_pos" default="0.0"/>
